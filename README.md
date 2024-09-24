@@ -1,3 +1,26 @@
+## clearpath_config (humble) - 0.3.2-1
+
+The packages in the `clearpath_config` repository were released into the `humble` distro by running `/home/z572/gits/revyos-ros/venv2/bin/bloom-release -r humble clearpath_config --override-release-repository-push-url git@github.com:revyos-ros/clearpath_config-release.git` on `Tue, 24 Sep 2024 05:35:23 -0000`
+
+The `clearpath_config` package was released.
+
+Version of package(s) in repository `clearpath_config`:
+
+- upstream repository: https://github.com/clearpathrobotics/clearpath_config.git
+- release repository: https://github.com/revyos-ros/clearpath_config-release.git
+- rosdistro version: `0.3.2-1`
+- old version: `0.3.1-1`
+- new version: `0.3.2-1`
+
+Versions of tools used:
+
+- bloom version: `0.12.0`
+- catkin_pkg version: `1.0.0`
+- rosdep version: `0.22.2`
+- rosdistro version: `0.9.0`
+- vcstools version: `0.1.42`
+
+
 ## clearpath_config (humble) - 0.3.1-1
 
 The packages in the `clearpath_config` repository were released into the `humble` distro by running `/home/z572/gits/revyos-ros/venv/bin/bloom-release -r humble clearpath_config --override-release-repository-push-url git@github.com:revyos-ros/clearpath_config-release.git` on `Fri, 20 Sep 2024 05:16:11 -0000`

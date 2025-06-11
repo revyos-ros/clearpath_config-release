@@ -40,6 +40,10 @@ from clearpath_config.sensors.types.cameras import (
     LuxonisOAKD,
     StereolabsZed,
 )
+from clearpath_config.sensors.types.charger import (
+    BaseCharger,
+    Wiferion,
+)
 from clearpath_config.sensors.types.gps import (
     BaseGPS,
     Garmin18x,
@@ -55,6 +59,10 @@ from clearpath_config.sensors.types.imu import (
     PhidgetsSpatial,
     RedshiftUM7,
 )
+from clearpath_config.sensors.types.ins import (
+    BaseINS,
+    Fixposition,
+)
 from clearpath_config.sensors.types.lidars_2d import (
     BaseLidar2D,
     HokuyoUST,
@@ -62,6 +70,8 @@ from clearpath_config.sensors.types.lidars_2d import (
 )
 from clearpath_config.sensors.types.lidars_3d import (
     BaseLidar3D,
+    OusterOS1,
+    SeyondLidar,
     VelodyneLidar,
 )
 from clearpath_config.sensors.types.sensor import BaseSensor
@@ -112,6 +122,22 @@ class Camera():
         return cls.MODEL[model]()
 
 
+class Charger():
+    WIFERION = Wiferion.SENSOR_MODEL
+
+    MODEL = {
+        WIFERION: Wiferion
+    }
+
+    @classmethod
+    def assert_model(cls, model: str) -> None:
+        assert model in cls.MODEL, f'Charger model "{model}" must be one of "{cls.MODEL.keys()}"'
+
+    def __new__(cls, model: str) -> BaseCamera:
+        cls.assert_model(model)
+        return cls.MODEL[model]()
+
+
 class GlobalPositioningSystem():
     SWIFTNAV_DURO = SwiftNavDuro.SENSOR_MODEL
     MICROSTRAIN_GQ7 = MicrostrainGQ7.SENSOR_MODEL
@@ -155,10 +181,14 @@ class Lidar2D():
 
 
 class Lidar3D():
+    OUSTER_OS1 = OusterOS1.SENSOR_MODEL
+    SEYOND_LIDAR = SeyondLidar.SENSOR_MODEL
     VELODYNE_LIDAR = VelodyneLidar.SENSOR_MODEL
 
     MODEL = {
-        VELODYNE_LIDAR: VelodyneLidar
+        OUSTER_OS1: OusterOS1,
+        SEYOND_LIDAR: SeyondLidar,
+        VELODYNE_LIDAR: VelodyneLidar,
     }
 
     @classmethod
@@ -166,6 +196,22 @@ class Lidar3D():
         assert model in cls.MODEL, f'Model "{model}" must be one of "{cls.MODEL.keys()}"'
 
     def __new__(cls, model: str) -> BaseLidar3D:
+        cls.assert_model(model)
+        return cls.MODEL[model]()
+
+
+class INS():
+    FIXPOSITION_INS = Fixposition.SENSOR_MODEL
+
+    MODEL = {
+        FIXPOSITION_INS: Fixposition
+    }
+
+    @classmethod
+    def assert_model(cls, model: str) -> None:
+        assert model in cls.MODEL, f'Model "{model}" must be one of "{cls.MODEL.keys()}"'
+
+    def __new__(cls, model: str) -> BaseINS:
         cls.assert_model(model)
         return cls.MODEL[model]()
 
@@ -211,23 +257,28 @@ class SensorConfig(BaseConfig):
     LIDAR2D_INDEX = 0
     LIDAR3D_INDEX = 0
     CAMERA_INDEX = 0
+    CHARGER_INDEX = 0
     IMU_INDEX = 0
     GPS_INDEX = 0
 
     SENSORS = 'sensors'
     CAMERA = BaseCamera.SENSOR_TYPE
+    CHARGER = BaseCharger.SENSOR_TYPE
     IMU = BaseIMU.SENSOR_TYPE
     GPS = BaseGPS.SENSOR_TYPE
     LIDAR2D = BaseLidar2D.SENSOR_TYPE
     LIDAR3D = BaseLidar3D.SENSOR_TYPE
+    INS = BaseINS.SENSOR_TYPE
 
     TEMPLATE = {
         SENSORS: {
             CAMERA: CAMERA,
+            CHARGER: CHARGER,
             IMU: IMU,
             GPS: GPS,
             LIDAR2D: LIDAR2D,
-            LIDAR3D: LIDAR3D
+            LIDAR3D: LIDAR3D,
+            INS: INS,
         }
     }
 
@@ -235,40 +286,50 @@ class SensorConfig(BaseConfig):
 
     DEFAULTS = {
         CAMERA: [],
+        CHARGER: [],
         GPS: [],
         IMU: [],
         LIDAR2D: [],
-        LIDAR3D: []
+        LIDAR3D: [],
+        INS: [],
     }
 
     def __init__(
             self,
             config: dict = {},
             camera: List[BaseCamera] = DEFAULTS[CAMERA],
+            charger: List[BaseCharger] = DEFAULTS[CHARGER],
             gps: List[BaseGPS] = DEFAULTS[GPS],
             imu: List[BaseIMU] = DEFAULTS[IMU],
             lidar2d: List[BaseLidar2D] = DEFAULTS[LIDAR2D],
-            lidar3d: List[BaseLidar3D] = DEFAULTS[LIDAR3D]
+            lidar3d: List[BaseLidar3D] = DEFAULTS[LIDAR3D],
+            ins: List[BaseINS] = DEFAULTS[INS],
             ) -> None:
         # List Initialization
         self._camera = SensorListConfig()
+        self._charger = SensorListConfig()
         self._gps = SensorListConfig()
         self._imu = SensorListConfig()
         self._lidar2d = SensorListConfig()
         self._lidar3d = SensorListConfig()
+        self._ins = SensorListConfig()
         # Initialization
         self.camera = camera
+        self.charger = charger
         self.gps = gps
         self.imu = imu
         self.lidar2d = lidar2d
         self.lidar3d = lidar3d
+        self.ins = ins
         # Template
         template = {
             self.KEYS[self.CAMERA]: SensorConfig.camera,
+            self.KEYS[self.CHARGER]: SensorConfig.charger,
             self.KEYS[self.GPS]: SensorConfig.gps,
             self.KEYS[self.IMU]: SensorConfig.imu,
             self.KEYS[self.LIDAR2D]: SensorConfig.lidar2d,
             self.KEYS[self.LIDAR3D]: SensorConfig.lidar3d,
+            self.KEYS[self.INS]: SensorConfig.ins,
         }
         super().__init__(template, config, self.SENSORS)
 
@@ -281,6 +342,7 @@ class SensorConfig(BaseConfig):
             self._imu.set_index_offset(index.imu)
             self._lidar2d.set_index_offset(index.lidar2d)
             self._lidar3d.set_index_offset(index.lidar3d)
+            self._ins.set_index_offset(index.ins)
 
     @property
     def camera(self) -> OrderedListConfig:
@@ -304,6 +366,29 @@ class SensorConfig(BaseConfig):
             sensor.from_dict(d)
             sensor_list.append(sensor)
         self._camera.set_all(sensor_list)
+
+    @property
+    def charger(self) -> OrderedListConfig:
+        self.set_config_param(
+            key=self.KEYS[self.CHARGER],
+            value=self._charger.to_dict()
+        )
+        return self._charger
+
+    @charger.setter
+    def charger(self, value: List[dict]) -> None:
+        assert isinstance(value, list), (
+            'Sensors must be list of "dict"')
+        assert all([isinstance(d, dict) for d in value]), (  # noqa: C419
+            'Sensors must be list of "dict"')
+        assert all(['model' in d for d in value]), (  # noqa: C419
+            'Sensor "dict" must have "model" key')
+        sensor_list = []
+        for d in value:
+            sensor = Charger(d['model'])
+            sensor.from_dict(d)
+            sensor_list.append(sensor)
+        self._charger.set_all(sensor_list)
 
     @property
     def gps(self) -> OrderedListConfig:
@@ -397,6 +482,32 @@ class SensorConfig(BaseConfig):
             sensor_list.append(sensor)
         self._lidar3d.set_all(sensor_list)
 
+    @property
+    def ins(self) -> OrderedListConfig:
+        self.set_config_param(
+            key=self.KEYS[self.INS],
+            value=self._ins.to_dict()
+        )
+        return self._ins
+
+    @ins.setter
+    def ins(self, value: List[dict]) -> None:
+        assert isinstance(value, list), (
+            'Sensors must be list of "dict"'
+        )
+        assert all([isinstance(d, dict) for d in value]), (  # noqa: C419
+            'Sensors must be list of "dict"'
+        )
+        assert all(['model' in d for d in value]), (  # noqa: C419
+            'Sensor "dict" must have "model" key'
+        )
+        sensor_list = []
+        for d in value:
+            sensor = INS(d['model'])
+            sensor.from_dict(d)
+            sensor_list.append(sensor)
+        self._ins.set_all(sensor_list)
+
     # Get All Sensors
     def get_all_sensors(self) -> List[BaseSensor]:
         sensors = []
@@ -406,10 +517,14 @@ class SensorConfig(BaseConfig):
         sensors.extend(self.get_all_lidar_3d())
         # Cameras
         sensors.extend(self.get_all_cameras())
+        # Chargers
+        sensors.extend(self.get_all_chargers())
         # IMU
         sensors.extend(self.get_all_imu())
         # GPS
         sensors.extend(self.get_all_gps())
+        # INS
+        sensors.extend(self.get_all_ins())
         return sensors
 
     # Lidar2D: Add Lidar2D by Object or Common Lidar2D Parameters
@@ -650,6 +765,10 @@ class SensorConfig(BaseConfig):
     # Lidar3D: Set All Lidar3D Objects
     def set_all_lidar_3d(self, all_lidar_3d: List[BaseLidar3D]) -> None:
         self._lidar3d.set_all(all_lidar_3d)
+
+    # Charger: Get All Charges
+    def get_all_chargers(self) -> List[BaseCharger]:
+        return self._charger.get_all()
 
     # Camera: Add Camera
     def add_camera(
@@ -976,7 +1095,7 @@ class SensorConfig(BaseConfig):
                 all_model_gps.append(gps)
         return all_model_gps
 
-    # GPS: Get All Objects of Model UST
+    # GPS: Get All Objects of Model Duro
     def get_all_duro(self) -> List[SwiftNavDuro]:
         return self.get_all_gps_by_model(
             GlobalPositioningSystem.SWIFTNAV_DURO)
@@ -988,3 +1107,32 @@ class SensorConfig(BaseConfig):
     # GPS: Set All GPS Objects
     def set_all_gps(self, all_gps: List[BaseGPS]) -> None:
         self._gps.set_all(all_gps)
+
+    # INS: Remove INS by passing object or index
+    def remove_ins(self, ins:  BaseINS | int) -> None:
+        self._ins.remove(ins)
+
+    # INS: Get Single Object
+    def get_ins(self, idx: int) -> BaseINS:
+        return self._ins.get(idx)
+
+    # INS: Get All Objects
+    def get_all_ins(self) -> List[BaseINS]:
+        return self._ins.get_all()
+
+    # INS: Get All Objects of a Specified Model
+    def get_all_ins_by_model(self, model: str) -> List[BaseINS]:
+        INS.assert_model(model)
+        all_model_ins = []
+        for ins in self.get_all_ins():
+            if ins.SENSOR_MODEL == model:
+                all_model_ins.append(ins)
+        return all_model_ins
+
+    # INS: Set INS Object
+    def set_ins(self, ins:  BaseINS) -> None:
+        self._ins.set(ins)
+
+    # INS: Set All INS Objects
+    def set_all_ins(self, all_ins: List[BaseINS]) -> None:
+        self._ins.set_all(all_ins)

@@ -2,6 +2,72 @@
 Changelog for package clearpath_config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.5.0 (2025-05-29)
+------------------
+* Fix: PACS Limits (`#171 <https://github.com/clearpathrobotics/clearpath_config/issues/171>`_)
+* Add foxglove bridge enable to platform section (`#169 <https://github.com/clearpathrobotics/clearpath_config/issues/169>`_)
+* Add enable setting for wireless-watcher (`#170 <https://github.com/clearpathrobotics/clearpath_config/issues/170>`_)
+* Feature: CAN Bridge Parameters (`#166 <https://github.com/clearpathrobotics/clearpath_config/issues/166>`_)
+* Add cap_type parameter to the OS1 sample since it's supported (`#163 <https://github.com/clearpathrobotics/clearpath_config/issues/163>`_)
+* Fix/issue typos (`#168 <https://github.com/clearpathrobotics/clearpath_config/issues/168>`_)
+* Contributors: Chris Iverach-Brereton, Hilary Luo, luis-camero
+
+2.4.0 (2025-05-01)
+------------------
+* Keep default can_bridge entries (`#160 <https://github.com/clearpathrobotics/clearpath_config/issues/160>`_)
+* Contributors: Luis Camero
+
+2.3.1 (2025-04-28)
+------------------
+* Fixed the Husky A300 serial sample to match the real serial.
+* Contributors: Tony Baltovski
+
+2.3.0 (2025-04-11)
+------------------
+* Added a single Hokuyo laser to default R100 sample. (`#157 <https://github.com/clearpathrobotics/clearpath_config/issues/157>`_)
+* Maintain default can adapters but allow overwriting if matching names (`#155 <https://github.com/clearpathrobotics/clearpath_config/issues/155>`_)
+* Feature: Wiferion Charger (`#154 <https://github.com/clearpathrobotics/clearpath_config/issues/154>`_)
+* Feature: Add CAN adapters  (`#153 <https://github.com/clearpathrobotics/clearpath_config/issues/153>`_)
+* Rename camera IMU topics from imu to imu/data_raw (per RPSW-2503) (`#150 <https://github.com/clearpathrobotics/clearpath_config/issues/150>`_)
+* Feature: Add delay to manipulator controller (`#146 <https://github.com/clearpathrobotics/clearpath_config/issues/146>`_)
+* Feature: Manipulator URDF Parameters (`#145 <https://github.com/clearpathrobotics/clearpath_config/issues/145>`_)
+* Feature: MoveIt Parameters and Enable (`#144 <https://github.com/clearpathrobotics/clearpath_config/issues/144>`_)
+* Fast-Forward Feature: Manipulator Samples and Poses (`#143 <https://github.com/clearpathrobotics/clearpath_config/issues/143>`_)
+* Removed J100 from unsupported platforms (`#149 <https://github.com/clearpathrobotics/clearpath_config/issues/149>`_)
+* Changed all sensor samples to the Husky A300. (`#148 <https://github.com/clearpathrobotics/clearpath_config/issues/148>`_)
+* Add support for INS sensors + Fixposition XVN (`#142 <https://github.com/clearpathrobotics/clearpath_config/issues/142>`_)
+* Removed Dingo and Ridgeback from unsupported exception (`#137 <https://github.com/clearpathrobotics/clearpath_config/issues/137>`_)
+* Contributors: Chris Iverach-Brereton, Roni Kreinin, Tony Baltovski, Luis Camero
+
+2.2.2 (2025-03-27)
+------------------
+* Updated the parent link of the base IMU on the A300.
+* Contributors: Tony Baltovski
+
+2.2.1 (2025-03-17)
+------------------
+* Added battery to A300 samples.
+* Contributors: Tony Baltovski
+
+2.2.0 (2025-03-11)
+------------------
+* Feature Jazzy Ouster (`#132 <https://github.com/clearpathrobotics/clearpath_config/issues/132>`_)
+  * Add OusterOS1
+  * Add ouster sample
+  * Alphabetical entries to Lidar3D models
+* Add D455, D456 to supported devices (`#136 <https://github.com/clearpathrobotics/clearpath_config/issues/136>`_)
+* Add support for OAK-D Pro W PoE (`#135 <https://github.com/clearpathrobotics/clearpath_config/issues/135>`_)
+  * Add OAK-D Pro W PoE to sensor types. Add IP address field to OAK-D camera class, defaulting to None (for non-PoE models). Add a new assertion to validate IPv4 addresses
+  * Support the `device_type` parameter for OAK-D cameras
+  * Add i_mx_id, i_ip for identifying multiple cameras. Fix serial so it maps to i_usb_port_id
+  * Rename variable to avoid overwriting python builtin
+  * Allow empty strings as well as None for the IP address
+  * Add assert_is_ipv4_address to BaseSensor
+* Add URDF-only support for the Seyond Robin W (`#131 <https://github.com/clearpathrobotics/clearpath_config/issues/131>`_)
+  * Add the SeyondLidar class
+  * Add sample for the Seyond Robin W
+* Contributors: Chris Iverach-Brereton, luis-camero
+
 2.1.1 (2025-02-05)
 ------------------
 * Fixed docs link for Robot YAML. (`#124 <https://github.com/clearpathrobotics/clearpath_config/issues/124>`_)

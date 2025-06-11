@@ -32,7 +32,7 @@ from clearpath_config.common.utils.dictionary import flip_dict
 from clearpath_config.platform.attachments.config import AttachmentsConfig
 from clearpath_config.platform.attachments.mux import AttachmentsConfigMux
 from clearpath_config.platform.battery import BatteryConfig
-from clearpath_config.platform.can import CANBridgeConfig
+from clearpath_config.platform.can import CANAdapterConfig, CANBridgeConfig
 from clearpath_config.platform.extras import ExtrasConfig
 
 
@@ -99,6 +99,7 @@ class PlatformConfig(BaseConfig):
 
     CONTROLLER = 'controller'
     ATTACHMENTS = 'attachments'
+    CAN_ADAPTERS = 'can_adapters'
     CAN_BRIDGES = 'can_bridges'
 
     # Extras
@@ -117,11 +118,16 @@ class PlatformConfig(BaseConfig):
 
     # Enable/disable EKF
     ENABLE_EKF = 'enable_ekf'
+    # Enable/disable Foxglove bridge
+    ENABLE_FOXGLOVE_BRIDGE = 'enable_foxglove_bridge'
+    # Enable/disable Wireless Watcher
+    ENABLE_WIRELESS_WATCHER = 'enable_wireless_watcher'
 
     TEMPLATE = {
         PLATFORM: {
             CONTROLLER: CONTROLLER,
             ATTACHMENTS: ATTACHMENTS,
+            CAN_ADAPTERS: CAN_ADAPTERS,
             CAN_BRIDGES: CAN_BRIDGES,
             EXTRAS: EXTRAS,
             DESCRIPTION: DESCRIPTION,
@@ -129,7 +135,9 @@ class PlatformConfig(BaseConfig):
             CONTROL: CONTROL,
             BATTERY: BATTERY,
             WHEEL: WHEEL,
-            ENABLE_EKF: ENABLE_EKF
+            ENABLE_EKF: ENABLE_EKF,
+            ENABLE_FOXGLOVE_BRIDGE: ENABLE_FOXGLOVE_BRIDGE,
+            ENABLE_WIRELESS_WATCHER: ENABLE_WIRELESS_WATCHER
         }
     }
 
@@ -139,6 +147,7 @@ class PlatformConfig(BaseConfig):
         # PLATFORM
         CONTROLLER: PS4,
         ATTACHMENTS: {},
+        CAN_ADAPTERS: {},
         CAN_BRIDGES: {},
         EXTRAS: ExtrasConfig.DEFAULTS,
         DESCRIPTION: '',
@@ -147,6 +156,8 @@ class PlatformConfig(BaseConfig):
         BATTERY: BatteryConfig.DEFAULTS,
         WHEEL: 'default',
         ENABLE_EKF: True,
+        ENABLE_FOXGLOVE_BRIDGE: False,
+        ENABLE_WIRELESS_WATCHER: True
     }
 
     def __init__(
@@ -154,16 +165,20 @@ class PlatformConfig(BaseConfig):
             config: dict = {},
             controller: str = DEFAULTS[CONTROLLER],
             attachments: dict = DEFAULTS[ATTACHMENTS],
+            can_adapters: dict = DEFAULTS[CAN_ADAPTERS],
             can_bridges: dict = DEFAULTS[CAN_BRIDGES],
             battery: dict = DEFAULTS[BATTERY],
             extras: dict = DEFAULTS[EXTRAS],
             wheel: dict = DEFAULTS[WHEEL],
             enable_ekf: bool = DEFAULTS[ENABLE_EKF],
+            enable_foxglove_bridge: bool = DEFAULTS[ENABLE_FOXGLOVE_BRIDGE],
+            enable_wireless_watcher: bool = DEFAULTS[ENABLE_WIRELESS_WATCHER],
             ) -> None:
         # Initialization
         self._config = {}
         self.controller = controller
         self.attachments = attachments
+        self.can_adapters = can_adapters
         self.can_bridges = can_bridges
         self._battery = BatteryConfig(battery)
         self._extras = ExtrasConfig(extras)
@@ -172,15 +187,21 @@ class PlatformConfig(BaseConfig):
         self.control = self.DEFAULTS[self.CONTROL]
         self.wheel = wheel
         self.enable_ekf = enable_ekf
+        self.enable_foxglove_bridge = enable_foxglove_bridge
+        self.enable_wireless_watcher = enable_wireless_watcher
+
         # Setter Template
         setters = {
             self.KEYS[self.CONTROLLER]: PlatformConfig.controller,
             self.KEYS[self.ATTACHMENTS]: PlatformConfig.attachments,
+            self.KEYS[self.CAN_ADAPTERS]: PlatformConfig.can_adapters,
             self.KEYS[self.CAN_BRIDGES]: PlatformConfig.can_bridges,
             self.KEYS[self.BATTERY]: PlatformConfig.battery,
             self.KEYS[self.EXTRAS]: PlatformConfig.extras,
             self.KEYS[self.WHEEL]: PlatformConfig.wheel,
-            self.KEYS[self.ENABLE_EKF]: PlatformConfig.enable_ekf
+            self.KEYS[self.ENABLE_EKF]: PlatformConfig.enable_ekf,
+            self.KEYS[self.ENABLE_FOXGLOVE_BRIDGE]: PlatformConfig.enable_foxglove_bridge,
+            self.KEYS[self.ENABLE_WIRELESS_WATCHER]: PlatformConfig.enable_wireless_watcher
         }
         super().__init__(setters, config, self.PLATFORM)
 
@@ -213,6 +234,7 @@ class PlatformConfig(BaseConfig):
                 self.template = template
             # Reload battery
             self.battery.update(serial_number=serial_number)
+            self.can_adapters.update(serial_number=serial_number)
             self.can_bridges.update(serial_number=serial_number)
 
     @property
@@ -242,6 +264,20 @@ class PlatformConfig(BaseConfig):
             self.get_platform_model(), value)
 
     @property
+    def can_adapters(self) -> CANAdapterConfig:
+        self.set_config_param(
+            key=self.KEYS[self.CAN_ADAPTERS],
+            value=self._can_adapters.config
+        )
+        return self._can_adapters
+
+    @can_adapters.setter
+    def can_adapters(self, value: dict) -> None:
+        self._can_adapters = CANAdapterConfig()
+        self._can_adapters.update(True)
+        self._can_adapters.config = value
+
+    @property
     def can_bridges(self) -> CANBridgeConfig:
         self.set_config_param(
             key=self.KEYS[self.CAN_BRIDGES],
@@ -251,7 +287,9 @@ class PlatformConfig(BaseConfig):
 
     @can_bridges.setter
     def can_bridges(self, value: dict) -> None:
-        self._can_bridges = CANBridgeConfig(value)
+        self._can_bridges = CANBridgeConfig()
+        self._can_bridges.update(True)
+        self._can_bridges.config = value
 
     @property
     def extras(self) -> ExtrasConfig:
@@ -362,3 +400,27 @@ class PlatformConfig(BaseConfig):
     @enable_ekf.setter
     def enable_ekf(self, value: bool) -> None:
         self._enable_ekf = value
+
+    @property
+    def enable_foxglove_bridge(self) -> bool:
+        self.set_config_param(
+            key=self.KEYS[self.ENABLE_FOXGLOVE_BRIDGE],
+            value=self._enable_foxglove_bridge
+        )
+        return self._enable_foxglove_bridge
+
+    @enable_foxglove_bridge.setter
+    def enable_foxglove_bridge(self, value: bool) -> None:
+        self._enable_foxglove_bridge = value
+
+    @property
+    def enable_wireless_watcher(self) -> bool:
+        self.set_config_param(
+            key=self.KEYS[self.ENABLE_WIRELESS_WATCHER],
+            value=self._enable_wireless_watcher
+        )
+        return self._enable_wireless_watcher
+
+    @enable_wireless_watcher.setter
+    def enable_wireless_watcher(self, value: bool) -> None:
+        self._enable_wireless_watcher = value
